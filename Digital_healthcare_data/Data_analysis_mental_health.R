@@ -12,7 +12,7 @@ library(dplyr)
 ##### Step 2: CLEANING: Check unique values in each column to ensure if the data is complete and how to clean/filter data #####
 
 #Step2.1: Read the csv and create a backup version
-raw_data <- read.csv("Hiring_Challenge_Dataset.csv") # the input dataset
+raw_data <- read.csv("dummy_patient_reported_data.csv") # the input dataset
 raw_data_bk <- raw_data # a back up to ensure or compare changes that could alter data in the csv
 
 
