@@ -5,7 +5,7 @@ R version 4.3.1 was used for analysis.
 
 # Subproject 1
 ## Digital healthcare data
-Currently, this project cleans and visualizes dummy patient-reported data (PRD). It uses basic R functions to clean and prepare data. ggplot2 is used to visualize data. The main goal of this script is to study the efefctiveness of a mental health app using PRD. 
+Currently, this project cleans and visualizes dummy patient-reported data (PRD). It uses basic R functions to clean and prepare data. ggplot2 is used to visualize data. The main goal of this script is to study the effectiveness of a mental health app using PRD. 
 
 Features:
 - dealing with missing data
