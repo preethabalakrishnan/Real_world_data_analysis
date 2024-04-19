@@ -92,7 +92,7 @@ wry_pan_na_T0_T6 <- raw_T3_gen %>%
   filter(., !duplicated(.)) # 38 entries must be removed from the original dataset and the rest can be used for analysis
   
 #Step 2.14: Check the diff values in no of panic attacks
-no_pan_atk <- data.frame(unique(raw_data_T3$n_PanicAttacks))# values from 0 to 7 and -999. -999 seems like a backend value added while collecting data.Mostly, it may be an empty or unanswered value
+no_pan_atk <- data.frame(unique(raw_data_T3$n_PanicAttacks))# values from 0 to 7 and -999. -999 seems like a back-end value added while collecting data.Mostly, it may be an empty or unanswered value
 
 #Step 2.15: Check how many ID#s have a  -999 for this question based on timepoints
 no_pan_atk_999_tp <- raw_T3_gen %>% 
@@ -215,12 +215,20 @@ hist(con_anx_cln_cast$T0)
 hist(con_anx_cln_cast$T6)
 
 ##*************** Step 4.4: Statistical Analysis ****************************************************###
+
+#Step 4.4.1: Add the necessary libraries
 library(plyr) # For ddply function
 library(ggsignif)# For geom_signif
+library(ggprism) # To obtain prism like plot settings 
 library('rstatix') # FOr wilcoxon effect size
+#install.packages("RColorBrewer")
+install.packages("ggprism")
+library(RColorBrewer) # for changing the color of the graphs
+install.packages('base') # for concatenating characters
+library(base)
 
-#Step 4.4.1: Create a function that calculates the differences between T0 and T6 and plots a graph
-stat_analysis <-  function(x= clean_cast_df_input, y= clean_df_input) {
+#Step 4.4.2: Create a function that calculates the differences between T0 and T6 and plots a graph for each reported parameter
+  stat_analysis <-  function(x= clean_cast_df_input, y= clean_df_input, z = title_of_the_plot, a = y_axis_title) {
   
   #Step 1: Check if the data is normally distributed
   #WE already know that the data is not normally distributed. This is just to be sure if the data is normally distributed
@@ -239,17 +247,23 @@ stat_analysis <-  function(x= clean_cast_df_input, y= clean_df_input) {
   # Step 4: Calculate the median values for T0 and T6
   med_score <- ddply(y, .(timepoint), summarise, score = median(value))
   
-  #Step 2: Plot the graph
-  box_plot_grp <- ggplot(y,aes(x = timepoint, y = value)) + 
-    geom_boxplot() +  
-    geom_signif(comparisons = list(c("T0", "T6")), map_signif_level = TRUE, textsize = 4, vjust = 0.5) +
+  #Step 5: Plot the graph
+  box_plot_grp <- ggplot(y,aes(x = timepoint, y = value, fill = timepoint)) + 
+    geom_boxplot(width=0.4, linewidth = 0.7, fatten = 1.4) +
+    geom_signif(comparisons = list(c("T0", "T6")), map_signif_level = TRUE, size = 0.7) +
     scale_x_discrete(labels=c("Baseline","After 6 weeks")) +
-    labs(y= "Confidence to handle anxiety (Median score)", x = "Group") +
-    geom_text(aes(label = paste("p =", format(wilcox_result$p.value, digits = 3))), x = 1.5, y = 9.5 , hjust = 0.5, vjust = -1.5, size = 3) +
-    geom_text(data = med_score, aes(x = timepoint, y = score, label = score), size = 3, vjust = -1.5) +
-    theme_bw()
+    ggtitle(as.character(z)) +
+    labs(x="Group", y = as.character(a)) +
+    scale_fill_brewer(palette="Oranges") +
+    geom_text(aes(label = paste("p =", format(wilcox_result$p.value, digits = 3))), x = 1.5, y = 9.5 , hjust = 0.5, vjust = -1, size = 3) +
+    geom_text(data = med_score, aes(x = timepoint, y = score, label = score), size = 3, vjust = -0.5) +
+    theme_prism() +
+    theme(legend.position="none") +
+    theme(axis.text.y = element_text(size = 8), axis.title.y = element_text(size = 10), axis.text.x = element_text(size = 8), axis.title.x = element_text(size = 10), plot.title = element_text(size = 11, hjust = 0.5))
+
+  plot_pdf <- ggsave(box_plot_grp, width = 4, height = 4, file = paste(z, "pdf", sep = "."))
   
-  # Step 4: Put the results in a list:
+  # Step 6: Put the results in a list:
   results_list <- list("nor_T0" = nor_T0, "nor_T6" = nor_T6, wilcox_result, effect_size_test)
   
   print(box_plot_grp)
@@ -259,9 +273,9 @@ stat_analysis <-  function(x= clean_cast_df_input, y= clean_df_input) {
 
 
 #Step 4.4.2: Call the function
-con_anx_stat_diff <- stat_analysis( x = con_anx_cln_cast, y = con_anx_cln)
-wry_pan_stat_diff <- stat_analysis( x = wry_pan_atk_cln_cast, y = wry_pan_atk_cln)
-no_pan_atk_stat_diff <- stat_analysis( x = no_pan_atk_cln_cast, y = no_pan_atk_cln)# #V = 353, p-value = 0.1892, it shows that the number of panic attacks remained the same
+con_anx_stat_diff <- stat_analysis( x = con_anx_cln_cast, y = con_anx_cln, z = 'Confidence to handle anxiety', a = 'Median score')
+wry_pan_stat_diff <- stat_analysis( x = wry_pan_atk_cln_cast, y = wry_pan_atk_cln, z = 'Worry about panic attacks', a = 'Median score')
+no_pan_atk_stat_diff <- stat_analysis( x = no_pan_atk_cln_cast, y = no_pan_atk_cln, z = 'No of panic attacks', a = 'Value')# #V = 353, p-value = 0.1892, it shows that the number of panic attacks remained the same
 
 
 #************** Use only as back-up- other ideas ************************
